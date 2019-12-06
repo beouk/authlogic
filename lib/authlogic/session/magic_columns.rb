@@ -19,10 +19,7 @@ module Authlogic
         klass.class_eval do
           extend Config
           include InstanceMethods
-          after_persisting :set_last_request_at, :if => :set_last_request_at?
-          validate :increase_failed_login_count
-          before_save :update_info
-          before_save :set_last_request_at, :if => :set_last_request_at?
+      
         end
       end
 
@@ -48,30 +45,11 @@ module Authlogic
         private
 
           def increase_failed_login_count
-            if invalid_password? && attempted_record.respond_to?(:failed_login_count)
-              attempted_record.failed_login_count ||= 0
-              attempted_record.failed_login_count += 1
-            end
+      
           end
 
           def update_info
-            if record.respond_to?(:login_count)
-              record.login_count = (record.login_count.blank? ? 1 : record.login_count + 1)
-            end
-
-            if record.respond_to?(:failed_login_count)
-              record.failed_login_count = 0
-            end
-
-            if record.respond_to?(:current_login_at)
-              record.last_login_at = record.current_login_at if record.respond_to?(:last_login_at)
-              record.current_login_at = klass.default_timezone == :utc ? Time.now.utc : Time.now
-            end
-
-            if record.respond_to?(:current_login_ip)
-              record.last_login_ip = record.current_login_ip if record.respond_to?(:last_login_ip)
-              record.current_login_ip = controller.request.ip
-            end
+        
           end
 
           # This method lets authlogic know whether it should allow the
@@ -93,22 +71,15 @@ module Authlogic
           #
           # You can do whatever you want with that method.
           def set_last_request_at? # :doc:
-            if !record || !klass.column_names.include?("last_request_at")
-              return false
-            end
-            if controller.responds_to_last_request_update_allowed? && !controller.last_request_update_allowed?
-              return false
-            end
-            record.last_request_at.blank? ||
-              last_request_at_threshold.to_i.seconds.ago >= record.last_request_at
+          
           end
 
           def set_last_request_at
-            record.last_request_at = klass.default_timezone == :utc ? Time.now.utc : Time.now
+        
           end
 
           def last_request_at_threshold
-            self.class.last_request_at_threshold
+          
           end
       end
     end
